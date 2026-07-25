@@ -44,7 +44,7 @@ namespace NzbDrone.Core.MediaCover
 
         // ImageSharp is slow on ARM (no hardware acceleration on mono yet)
         // So limit the number of concurrent resizing tasks
-        private static SemaphoreSlim _semaphore = new SemaphoreSlim((int)Math.Ceiling(Environment.ProcessorCount / 2.0));
+        private static readonly SemaphoreSlim Semaphore = new((int)Math.Ceiling(Environment.ProcessorCount / 2.0));
 
         public MediaCoverService(IMediaCoverProxy mediaCoverProxy,
                                  IImageResizer resizer,
@@ -72,21 +72,20 @@ namespace NzbDrone.Core.MediaCover
 
         public string GetCoverPath(int entityId, MediaCoverEntity coverEntity, MediaCoverTypes coverType, string extension, int? height = null)
         {
-            var heightSuffix = height.HasValue ? "-" + height.ToString() : "";
+            var heightSuffix = height.HasValue ? $"-{height}" : "";
 
-            if (coverEntity == MediaCoverEntity.Album)
+            return coverEntity switch
             {
-                return Path.Combine(GetAlbumCoverPath(entityId), coverType.ToString().ToLower() + heightSuffix + GetExtension(coverType, extension));
-            }
-
-            return Path.Combine(GetArtistCoverPath(entityId), coverType.ToString().ToLower() + heightSuffix + GetExtension(coverType, extension));
+                MediaCoverEntity.Album => Path.Combine(GetAlbumCoverPath(entityId), coverType.ToString().ToLowerInvariant() + heightSuffix + GetExtension(coverType, extension)),
+                _ => Path.Combine(GetArtistCoverPath(entityId), coverType.ToString().ToLowerInvariant() + heightSuffix + GetExtension(coverType, extension))
+            };
         }
 
         public void ConvertToLocalUrls(int entityId, MediaCoverEntity coverEntity, ICollection<MediaCover> covers)
         {
             if (entityId == 0)
             {
-                // Artist isn't in Lidarr yet, map via a proxy to circument referrer issues
+                // Artist isn't in Lidarr yet, map via a proxy to circumvent referrer issues
                 foreach (var mediaCover in covers)
                 {
                     mediaCover.Url = _mediaCoverProxy.RegisterUrl(mediaCover.RemoteUrl);
@@ -107,21 +106,15 @@ namespace NzbDrone.Core.MediaCover
                     continue;
                 }
 
-                var filePath = GetCoverPath(entityId, coverEntity, mediaCover.CoverType, mediaCover.Extension, null);
+                mediaCover.Url = coverEntity switch
+                {
+                    MediaCoverEntity.Album => _configFileProvider.UrlBase + @"/MediaCover/Albums/" + entityId + "/" + mediaCover.CoverType.ToString().ToLowerInvariant() + GetExtension(mediaCover.CoverType, mediaCover.Extension),
+                    _ => _configFileProvider.UrlBase + @"/MediaCover/" + entityId + "/" + mediaCover.CoverType.ToString().ToLowerInvariant() + GetExtension(mediaCover.CoverType, mediaCover.Extension)
+                };
 
-                if (coverEntity == MediaCoverEntity.Album)
+                if (mediaCover.RemoteUrl.IsNotNullOrWhiteSpace())
                 {
-                    mediaCover.Url = _configFileProvider.UrlBase + @"/MediaCover/Albums/" + entityId + "/" + mediaCover.CoverType.ToString().ToLower() + GetExtension(mediaCover.CoverType, mediaCover.Extension);
-                }
-                else
-                {
-                    mediaCover.Url = _configFileProvider.UrlBase + @"/MediaCover/" + entityId + "/" + mediaCover.CoverType.ToString().ToLower() + GetExtension(mediaCover.CoverType, mediaCover.Extension);
-                }
-
-                if (_diskProvider.FileExists(filePath))
-                {
-                    var lastWrite = _diskProvider.FileGetLastWrite(filePath);
-                    mediaCover.Url += "?lastWrite=" + lastWrite.Ticks;
+                    mediaCover.Url += "?h=" + mediaCover.RemoteUrl.SHA256Hash()[..20];
                 }
             }
         }
@@ -181,7 +174,7 @@ namespace NzbDrone.Core.MediaCover
 
             try
             {
-                _semaphore.Wait();
+                Semaphore.Wait();
 
                 foreach (var tuple in toResize)
                 {
@@ -190,7 +183,7 @@ namespace NzbDrone.Core.MediaCover
             }
             finally
             {
-                _semaphore.Release();
+                Semaphore.Release();
             }
 
             return updated;
@@ -198,28 +191,26 @@ namespace NzbDrone.Core.MediaCover
 
         private void PopulateCoverWithCache(int entityId, MediaCoverEntity coverEntity, ICollection<MediaCover> covers)
         {
-            var folderPath = coverEntity == MediaCoverEntity.Album ? GetAlbumCoverPath(entityId) : GetArtistCoverPath(entityId);
+            var folderPath = coverEntity switch
+            {
+                MediaCoverEntity.Album => GetAlbumCoverPath(entityId),
+                _ => GetArtistCoverPath(entityId)
+            };
 
             if (_diskProvider.FolderExists(folderPath))
             {
                 foreach (var fileInfo in _diskProvider.GetFileInfos(folderPath))
                 {
                     var fileName = Path.GetFileNameWithoutExtension(fileInfo.Name);
-                    var extension = Path.GetExtension(fileInfo.Name);
-                    if (fileName.Contains('-'))
+
+                    if (fileName == null || fileName.Contains('-'))
                     {
                         continue;
                     }
 
-                    if (Enum.TryParse(fileName, true, out MediaCoverTypes coverType) && !covers.Any(c => c.CoverType == coverType))
+                    if (Enum.TryParse(fileName, true, out MediaCoverTypes coverType) && covers.All(c => c.CoverType != coverType))
                     {
-                        var filePath = fileInfo.FullName;
-                        var diskCover = new MediaCover(coverType, filePath)
-                        {
-                            RemoteUrl = filePath
-                        };
-
-                        covers.Add(diskCover);
+                        covers.Add(new MediaCover(coverType, _coverRootFolder.GetRelativePath(fileInfo.FullName)));
                     }
                 }
             }
@@ -350,12 +341,12 @@ namespace NzbDrone.Core.MediaCover
             }
         }
 
-        private string GetExtension(MediaCoverTypes coverType, string defaultExtension)
+        private static string GetExtension(MediaCoverTypes coverType, string defaultExtension)
         {
             return coverType switch
             {
                 MediaCoverTypes.Clearlogo => ".png",
-                _ => defaultExtension
+                _ => defaultExtension ?? ".jpg"
             };
         }
 
