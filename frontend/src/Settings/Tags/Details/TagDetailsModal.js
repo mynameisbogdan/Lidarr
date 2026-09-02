@@ -13,7 +13,7 @@ function TagDetailsModal(props) {
 
   return (
     <Modal
-      size={sizes.MEDIUM}
+      size={sizes.SMALL}
       isOpen={isOpen}
       onModalClose={onModalClose}
     >
