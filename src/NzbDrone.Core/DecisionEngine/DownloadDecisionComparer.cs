@@ -123,9 +123,8 @@ namespace NzbDrone.Core.DecisionEngine
             var result = CompareBy(x.RemoteAlbum, y.RemoteAlbum, remoteAlbum =>
             {
                 var delayProfile = _delayProfileService.BestForTags(remoteAlbum.Artist.Tags);
-
-                // Flip sign since most preferred is first
-                return -1 * delayProfile.Items.FindIndex(i => i.Protocol == remoteAlbum.Release.DownloadProtocol);
+                var downloadProtocol = remoteAlbum.Release.DownloadProtocol;
+                return downloadProtocol == delayProfile.PreferredProtocol;
             });
 
             return result;
@@ -148,9 +147,9 @@ namespace NzbDrone.Core.DecisionEngine
         private int ComparePeersIfTorrent(DownloadDecision x, DownloadDecision y)
         {
             // Different protocols should get caught when checking the preferred protocol,
-            // since we're dealing with the same series in our comparisions
-            if (x.RemoteAlbum.Release.DownloadProtocol != nameof(TorrentDownloadProtocol) ||
-                y.RemoteAlbum.Release.DownloadProtocol != nameof(TorrentDownloadProtocol))
+            // since we're dealing with the same series in our comparisons
+            if (x.RemoteAlbum.Release.DownloadProtocol != DownloadProtocol.Torrent ||
+                y.RemoteAlbum.Release.DownloadProtocol != DownloadProtocol.Torrent)
             {
                 return 0;
             }
@@ -172,8 +171,8 @@ namespace NzbDrone.Core.DecisionEngine
 
         private int CompareAgeIfUsenet(DownloadDecision x, DownloadDecision y)
         {
-            if (x.RemoteAlbum.Release.DownloadProtocol != nameof(UsenetDownloadProtocol) ||
-                y.RemoteAlbum.Release.DownloadProtocol != nameof(UsenetDownloadProtocol))
+            if (x.RemoteAlbum.Release.DownloadProtocol != DownloadProtocol.Usenet ||
+                y.RemoteAlbum.Release.DownloadProtocol != DownloadProtocol.Usenet)
             {
                 return 0;
             }
