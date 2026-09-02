@@ -33,7 +33,7 @@ namespace NzbDrone.Core.Download
             _nzbValidationService = nzbValidationService;
         }
 
-        public override string Protocol => nameof(UsenetDownloadProtocol);
+        public override DownloadProtocol Protocol => DownloadProtocol.Usenet;
 
         protected abstract string AddFromNzbFile(RemoteAlbum remoteAlbum, string filename, byte[] fileContent);
 

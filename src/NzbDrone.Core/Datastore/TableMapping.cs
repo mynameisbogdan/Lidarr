@@ -249,7 +249,7 @@ namespace NzbDrone.Core.Datastore
 
         private static void RegisterProviderSettingConverter()
         {
-            var settingTypes = ReflectionExtensions.ImplementationsOf<IProviderConfig>()
+            var settingTypes = typeof(IProviderConfig).Assembly.ImplementationsOf<IProviderConfig>()
                 .Where(x => !x.ContainsGenericParameters);
 
             var providerSettingConverter = new ProviderSettingConverter();
@@ -261,7 +261,7 @@ namespace NzbDrone.Core.Datastore
 
         private static void RegisterEmbeddedConverter()
         {
-            var embeddedTypes = ReflectionExtensions.ImplementationsOf<IEmbeddedDocument>();
+            var embeddedTypes = typeof(IEmbeddedDocument).Assembly.ImplementationsOf<IEmbeddedDocument>();
 
             var embeddedConverterDefinition = typeof(EmbeddedDocumentConverter<>).GetGenericTypeDefinition();
             var genericListDefinition = typeof(List<>).GetGenericTypeDefinition();

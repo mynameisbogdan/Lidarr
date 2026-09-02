@@ -19,7 +19,7 @@ namespace NzbDrone.Core.Indexers.Newznab
 
         public override string Name => "Newznab";
 
-        public override string Protocol => nameof(UsenetDownloadProtocol);
+        public override DownloadProtocol Protocol => DownloadProtocol.Usenet;
         public override int PageSize => GetProviderPageSize();
 
         public Newznab(INewznabCapabilitiesProvider capabilitiesProvider, IHttpClient httpClient, IIndexerStatusService indexerStatusService, IConfigService configService, IParsingService parsingService, Logger logger)
@@ -69,7 +69,7 @@ namespace NzbDrone.Core.Indexers.Newznab
                 Name = name,
                 Implementation = GetType().Name,
                 Settings = settings,
-                Protocol = nameof(UsenetDownloadProtocol),
+                Protocol = DownloadProtocol.Usenet,
                 SupportsRss = SupportsRss,
                 SupportsSearch = SupportsSearch
             };

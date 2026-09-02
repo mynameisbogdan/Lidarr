@@ -1,14 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using Lidarr.Http.REST;
+using NzbDrone.Core.Indexers;
 using NzbDrone.Core.Profiles.Delay;
 
 namespace Lidarr.Api.V1.Profiles.Delay
 {
     public class DelayProfileResource : RestResource
     {
-        public string Name { get; set; }
-        public List<DelayProfileProtocolItemResource> Items { get; set; }
+        public bool EnableUsenet { get; set; }
+        public bool EnableTorrent { get; set; }
+        public DownloadProtocol PreferredProtocol { get; set; }
+        public int UsenetDelay { get; set; }
+        public int TorrentDelay { get; set; }
         public bool BypassIfHighestQuality { get; set; }
         public bool BypassIfAboveCustomFormatScore { get; set; }
         public int MinimumCustomFormatScore { get; set; }
@@ -28,8 +32,12 @@ namespace Lidarr.Api.V1.Profiles.Delay
             return new DelayProfileResource
             {
                 Id = model.Id,
-                Name = model.Name,
-                Items = model.Items.Select(x => x.ToResource()).ToList(),
+
+                EnableUsenet = model.EnableUsenet,
+                EnableTorrent = model.EnableTorrent,
+                PreferredProtocol = model.PreferredProtocol,
+                UsenetDelay = model.UsenetDelay,
+                TorrentDelay = model.TorrentDelay,
                 BypassIfHighestQuality = model.BypassIfHighestQuality,
                 BypassIfAboveCustomFormatScore = model.BypassIfAboveCustomFormatScore,
                 MinimumCustomFormatScore = model.MinimumCustomFormatScore,
@@ -48,8 +56,12 @@ namespace Lidarr.Api.V1.Profiles.Delay
             return new DelayProfile
             {
                 Id = resource.Id,
-                Name = resource.Name,
-                Items = resource.Items.Select(x => x.ToModel()).ToList(),
+
+                EnableUsenet = resource.EnableUsenet,
+                EnableTorrent = resource.EnableTorrent,
+                PreferredProtocol = resource.PreferredProtocol,
+                UsenetDelay = resource.UsenetDelay,
+                TorrentDelay = resource.TorrentDelay,
                 BypassIfHighestQuality = resource.BypassIfHighestQuality,
                 BypassIfAboveCustomFormatScore = resource.BypassIfAboveCustomFormatScore,
                 MinimumCustomFormatScore = resource.MinimumCustomFormatScore,

@@ -9,7 +9,7 @@ namespace NzbDrone.Core.Indexers.Nyaa
     {
         public override string Name => "Nyaa";
 
-        public override string Protocol => nameof(TorrentDownloadProtocol);
+        public override DownloadProtocol Protocol => DownloadProtocol.Torrent;
 
         public Nyaa(IHttpClient httpClient, IIndexerStatusService indexerStatusService, IConfigService configService, IParsingService parsingService, Logger logger)
             : base(httpClient, indexerStatusService, configService, parsingService, logger)
