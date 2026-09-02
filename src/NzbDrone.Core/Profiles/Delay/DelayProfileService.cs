@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NzbDrone.Common.Cache;
 using NzbDrone.Common.Extensions;
-using NzbDrone.Core.Indexers;
 
 namespace NzbDrone.Core.Profiles.Delay
 {
@@ -14,7 +13,6 @@ namespace NzbDrone.Core.Profiles.Delay
         void Delete(int id);
         List<DelayProfile> All();
         DelayProfile Get(int id);
-        DelayProfile GetDefaultProfile();
         List<DelayProfile> AllForTag(int tagId);
         List<DelayProfile> AllForTags(HashSet<int> tagIds);
         DelayProfile BestForTags(HashSet<int> tagIds);
@@ -25,14 +23,10 @@ namespace NzbDrone.Core.Profiles.Delay
     {
         private readonly IDelayProfileRepository _repo;
         private readonly ICached<DelayProfile> _bestForTagsCache;
-        private readonly List<IDownloadProtocol> _downloadProtocols;
 
-        public DelayProfileService(IDelayProfileRepository repo,
-                                   IEnumerable<IDownloadProtocol> downloadProtocols,
-                                   ICacheManager cacheManager)
+        public DelayProfileService(IDelayProfileRepository repo, ICacheManager cacheManager)
         {
             _repo = repo;
-            _downloadProtocols = downloadProtocols.ToList();
             _bestForTagsCache = cacheManager.GetCache<DelayProfile>(GetType(), "best");
         }
 
@@ -75,24 +69,12 @@ namespace NzbDrone.Core.Profiles.Delay
 
         public List<DelayProfile> All()
         {
-            return _repo.All().Select(x => AddMissingItems(x)).ToList();
+            return _repo.All().ToList();
         }
 
         public DelayProfile Get(int id)
         {
-            return AddMissingItems(_repo.Get(id));
-        }
-
-        public DelayProfile GetDefaultProfile()
-        {
-            var standardTypes = new[] { typeof(UsenetDownloadProtocol), typeof(TorrentDownloadProtocol) };
-
-            var others = _downloadProtocols.Where(x => !standardTypes.Contains(x.GetType())).OrderBy(x => x.GetType().Name);
-
-            var result = new DelayProfile();
-            result.Items.AddRange(others.Select(x => GetProtocolItem(x, true)));
-
-            return result;
+            return _repo.Get(id);
         }
 
         public List<DelayProfile> AllForTag(int tagId)
@@ -114,7 +96,7 @@ namespace NzbDrone.Core.Profiles.Delay
 
         private DelayProfile FetchBestForTags(HashSet<int> tagIds)
         {
-            return All()
+            return _repo.All()
                 .Where(r => r.Tags.Intersect(tagIds).Any() || r.Tags.Empty())
                 .OrderBy(d => d.Order).First();
         }
@@ -181,26 +163,6 @@ namespace NzbDrone.Core.Profiles.Delay
             }
 
             return after.Order;
-        }
-
-        private DelayProfile AddMissingItems(DelayProfile profile)
-        {
-            var missing = _downloadProtocols.Where(x => !profile.Items.Any(i => i.Protocol == x.GetType().Name));
-            profile.Items.AddRange(missing.Select(x => GetProtocolItem(x, false)));
-
-            var protocolNames = _downloadProtocols.Select(x => x.GetType().Name).ToList();
-            profile.Items.RemoveAll(x => !protocolNames.Contains(x.Protocol));
-            return profile;
-        }
-
-        private DelayProfileProtocolItem GetProtocolItem(IDownloadProtocol protocol, bool allowed)
-        {
-            return new DelayProfileProtocolItem
-            {
-                Name = protocol.GetType().Name.Replace("DownloadProtocol", ""),
-                Protocol = protocol.GetType().Name,
-                Allowed = allowed
-            };
         }
     }
 }

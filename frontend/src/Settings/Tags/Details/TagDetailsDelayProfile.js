@@ -1,41 +1,35 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import DelayProfileItem from 'Settings/Profiles/Delay/DelayProfileItem';
-import styles from './TagDetailsDelayProfile.css';
+import titleCase from 'Utilities/String/titleCase';
 
 function TagDetailsDelayProfile(props) {
   const {
-    name: profileName,
-    items
+    preferredProtocol,
+    enableUsenet,
+    enableTorrent,
+    usenetDelay,
+    torrentDelay
   } = props;
 
   return (
-    <div
-      className={styles.delayProfile}
-    >
-      <div
-        className={styles.name}
-      >
-        {profileName}
+    <div>
+      <div>
+        Protocol: {titleCase(preferredProtocol)}
       </div>
 
-      <div className={styles.tags}>
+      <div>
         {
-          items.map((item) => {
-            const {
-              protocol,
-              name,
-              allowed
-            } = item;
+          enableUsenet ?
+            `Usenet Delay: ${usenetDelay}` :
+            'Usenet disabled'
+        }
+      </div>
 
-            return (
-              <DelayProfileItem
-                key={protocol}
-                name={name}
-                allowed={allowed}
-              />
-            );
-          })
+      <div>
+        {
+          enableTorrent ?
+            `Torrent Delay: ${torrentDelay}` :
+            'Torrents disabled'
         }
       </div>
     </div>
@@ -43,8 +37,11 @@ function TagDetailsDelayProfile(props) {
 }
 
 TagDetailsDelayProfile.propTypes = {
-  name: PropTypes.string.isRequired,
-  items: PropTypes.arrayOf(PropTypes.object).isRequired
+  preferredProtocol: PropTypes.string.isRequired,
+  enableUsenet: PropTypes.bool.isRequired,
+  enableTorrent: PropTypes.bool.isRequired,
+  usenetDelay: PropTypes.number.isRequired,
+  torrentDelay: PropTypes.number.isRequired
 };
 
 export default TagDetailsDelayProfile;

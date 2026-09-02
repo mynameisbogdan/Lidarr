@@ -32,7 +32,7 @@ namespace NzbDrone.Core.Test.IndexerTests.IntegrationTests
 
             ValidateResult(reports, hasSize, hasInfoUrl);
 
-            reports.Should().OnlyContain(c => c.DownloadProtocol == nameof(TorrentDownloadProtocol));
+            reports.Should().OnlyContain(c => c.DownloadProtocol == DownloadProtocol.Torrent);
 
             if (hasMagnet)
             {

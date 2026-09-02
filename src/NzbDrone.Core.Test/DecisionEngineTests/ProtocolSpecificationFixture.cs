@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
@@ -26,14 +25,13 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
             _remoteAlbum.Artist = new Artist();
 
             _delayProfile = new DelayProfile();
-            _delayProfile.Items.ForEach(x => x.Allowed = false);
 
             Mocker.GetMock<IDelayProfileService>()
                   .Setup(s => s.BestForTags(It.IsAny<HashSet<int>>()))
                   .Returns(_delayProfile);
         }
 
-        private void GivenProtocol(string downloadProtocol)
+        private void GivenProtocol(DownloadProtocol downloadProtocol)
         {
             _remoteAlbum.Release.DownloadProtocol = downloadProtocol;
         }
@@ -41,8 +39,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
         [Test]
         public void should_be_true_if_usenet_and_usenet_is_enabled()
         {
-            GivenProtocol(nameof(UsenetDownloadProtocol));
-            _delayProfile.Items.Single(x => x.Protocol == nameof(UsenetDownloadProtocol)).Allowed = true;
+            GivenProtocol(DownloadProtocol.Usenet);
+            _delayProfile.EnableUsenet = true;
 
             Subject.IsSatisfiedBy(_remoteAlbum, null).Accepted.Should().Be(true);
         }
@@ -50,8 +48,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
         [Test]
         public void should_be_true_if_torrent_and_torrent_is_enabled()
         {
-            GivenProtocol(nameof(TorrentDownloadProtocol));
-            _delayProfile.Items.Single(x => x.Protocol == nameof(TorrentDownloadProtocol)).Allowed = true;
+            GivenProtocol(DownloadProtocol.Torrent);
+            _delayProfile.EnableTorrent = true;
 
             Subject.IsSatisfiedBy(_remoteAlbum, null).Accepted.Should().Be(true);
         }
@@ -59,7 +57,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
         [Test]
         public void should_be_false_if_usenet_and_usenet_is_disabled()
         {
-            GivenProtocol(nameof(UsenetDownloadProtocol));
+            GivenProtocol(DownloadProtocol.Usenet);
+            _delayProfile.EnableUsenet = false;
 
             Subject.IsSatisfiedBy(_remoteAlbum, null).Accepted.Should().Be(false);
         }
@@ -67,7 +66,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
         [Test]
         public void should_be_false_if_torrent_and_torrent_is_disabled()
         {
-            GivenProtocol(nameof(TorrentDownloadProtocol));
+            GivenProtocol(DownloadProtocol.Torrent);
+            _delayProfile.EnableTorrent = false;
 
             Subject.IsSatisfiedBy(_remoteAlbum, null).Accepted.Should().Be(false);
         }
