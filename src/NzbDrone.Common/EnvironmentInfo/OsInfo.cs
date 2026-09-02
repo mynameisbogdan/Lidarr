@@ -17,8 +17,6 @@ namespace NzbDrone.Common.EnvironmentInfo
 
         // this needs to not be static so we can mock it
         public bool IsDocker { get; }
-        public bool IsPodman { get; }
-        public bool IsContainerized { get; }
 
         public string Version { get; }
         public string Name { get; }
@@ -81,14 +79,11 @@ namespace NzbDrone.Common.EnvironmentInfo
                 FullName = Name;
             }
 
-            if (IsLinux)
+            if (IsLinux &&
+                (File.Exists("/.dockerenv") ||
+                 (File.Exists("/proc/1/cgroup") && File.ReadAllText("/proc/1/cgroup").Contains("/docker/"))))
             {
-                IsDocker = File.Exists("/.dockerenv") ||
-                           (File.Exists("/proc/1/cgroup") && File.ReadAllText("/proc/1/cgroup").Contains("/docker/"));
-                IsPodman = File.Exists("/run/.containerenv") ||
-                           Environment.GetEnvironmentVariable("container") != null;
-
-                IsContainerized = IsDocker || IsPodman || Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") is "true" or "1";
+                IsDocker = true;
             }
         }
     }
@@ -99,8 +94,6 @@ namespace NzbDrone.Common.EnvironmentInfo
         string Name { get; }
         string FullName { get; }
         bool IsDocker { get; }
-        bool IsPodman { get; }
-        bool IsContainerized { get; }
     }
 
     public enum Os
