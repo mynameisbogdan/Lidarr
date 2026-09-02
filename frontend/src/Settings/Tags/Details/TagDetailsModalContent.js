@@ -65,15 +65,21 @@ function TagDetailsModalContent(props) {
                 delayProfiles.map((item) => {
                   const {
                     id,
-                    name,
-                    items
+                    preferredProtocol,
+                    enableUsenet,
+                    enableTorrent,
+                    usenetDelay,
+                    torrentDelay
                   } = item;
 
                   return (
                     <TagDetailsDelayProfile
                       key={id}
-                      name={name}
-                      items={items}
+                      preferredProtocol={preferredProtocol}
+                      enableUsenet={enableUsenet}
+                      enableTorrent={enableTorrent}
+                      usenetDelay={usenetDelay}
+                      torrentDelay={torrentDelay}
                     />
                   );
                 })

@@ -64,7 +64,7 @@ namespace NzbDrone.Integration.Test
             indexer.ConfigContract = nameof(NewznabSettings);
             indexer.Implementation = nameof(Newznab);
             indexer.Name = "NewznabTest";
-            indexer.Protocol = nameof(Core.Indexers.UsenetDownloadProtocol);
+            indexer.Protocol = Core.Indexers.DownloadProtocol.Usenet;
 
             // Change Console Log Level to Debug so we get more details.
             var config = HostConfig.Get(1);

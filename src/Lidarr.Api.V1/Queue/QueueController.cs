@@ -13,6 +13,7 @@ using NzbDrone.Core.Datastore.Events;
 using NzbDrone.Core.Download;
 using NzbDrone.Core.Download.Pending;
 using NzbDrone.Core.Download.TrackedDownloads;
+using NzbDrone.Core.Indexers;
 using NzbDrone.Core.Messaging.Events;
 using NzbDrone.Core.Profiles.Qualities;
 using NzbDrone.Core.Qualities;
@@ -129,7 +130,7 @@ namespace Lidarr.Api.V1.Queue
 
         [HttpGet]
         [Produces("application/json")]
-        public PagingResource<QueueResource> GetQueue([FromQuery] PagingRequestResource paging, bool includeUnknownArtistItems = false, bool includeArtist = false, bool includeAlbum = false, [FromQuery] int[] artistIds = null, string protocol = null, [FromQuery] int[] quality = null)
+        public PagingResource<QueueResource> GetQueue([FromQuery] PagingRequestResource paging, bool includeUnknownArtistItems = false, bool includeArtist = false, bool includeAlbum = false, [FromQuery] int[] artistIds = null, DownloadProtocol? protocol = null, [FromQuery] int[] quality = null)
         {
             var pagingResource = new PagingResource<QueueResource>(paging);
             var pagingSpec = pagingResource.MapToPagingSpec<QueueResource, NzbDrone.Core.Queue.Queue>("timeleft", SortDirection.Ascending);
@@ -137,7 +138,7 @@ namespace Lidarr.Api.V1.Queue
             return pagingSpec.ApplyToPage((spec) => GetQueue(spec, artistIds?.ToHashSet(), protocol, quality?.ToHashSet(), includeUnknownArtistItems), (q) => MapToResource(q, includeArtist, includeAlbum));
         }
 
-        private PagingSpec<NzbDrone.Core.Queue.Queue> GetQueue(PagingSpec<NzbDrone.Core.Queue.Queue> pagingSpec, HashSet<int> artistIds, string protocol, HashSet<int> quality, bool includeUnknownArtistItems)
+        private PagingSpec<NzbDrone.Core.Queue.Queue> GetQueue(PagingSpec<NzbDrone.Core.Queue.Queue> pagingSpec, HashSet<int> artistIds, DownloadProtocol? protocol, HashSet<int> quality, bool includeUnknownArtistItems)
         {
             var ascending = pagingSpec.SortDirection == SortDirection.Ascending;
             var orderByFunc = GetOrderByFunc(pagingSpec);
@@ -158,9 +159,9 @@ namespace Lidarr.Api.V1.Queue
                     include &= q.Artist != null && artistIds.Contains(q.Artist.Id);
                 }
 
-                if (include && protocol.IsNotNullOrWhiteSpace())
+                if (include && protocol.HasValue)
                 {
-                    include &= q.Protocol == protocol;
+                    include &= q.Protocol == protocol.Value;
                 }
 
                 if (include && hasQualityFilter)
