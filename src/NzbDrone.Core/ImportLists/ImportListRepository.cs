@@ -1,4 +1,3 @@
-using NLog;
 using NzbDrone.Core.Datastore;
 using NzbDrone.Core.Messaging.Events;
 using NzbDrone.Core.ThingiProvider;
@@ -12,10 +11,8 @@ namespace NzbDrone.Core.ImportLists
 
     public class ImportListRepository : ProviderRepository<ImportListDefinition>, IImportListRepository
     {
-        public ImportListRepository(IMainDatabase database,
-                                    IEventAggregator eventAggregator,
-                                    Logger logger)
-        : base(database, eventAggregator, logger)
+        public ImportListRepository(IMainDatabase database, IEventAggregator eventAggregator)
+            : base(database, eventAggregator)
         {
         }
 

@@ -4,8 +4,7 @@ import Label from 'Components/Label';
 import styles from './ProtocolLabel.css';
 
 function ProtocolLabel({ protocol }) {
-  const strippedName = protocol.replace('DownloadProtocol', '').toLowerCase();
-  const protocolName = strippedName === 'usenet' ? 'nzb' : strippedName;
+  const protocolName = protocol === 'usenet' ? 'nzb' : protocol;
 
   return (
     <Label className={styles[protocol]}>

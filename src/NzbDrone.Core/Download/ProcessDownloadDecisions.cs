@@ -64,8 +64,8 @@ namespace NzbDrone.Core.Download
                     continue;
                 }
 
-                if ((downloadProtocol == nameof(UsenetDownloadProtocol) && usenetFailed) ||
-                    (downloadProtocol == nameof(TorrentDownloadProtocol) && torrentFailed))
+                if ((downloadProtocol == DownloadProtocol.Usenet && usenetFailed) ||
+                    (downloadProtocol == DownloadProtocol.Torrent && torrentFailed))
                 {
                     PreparePending(pendingAddQueue, grabbed, pending, report, PendingReleaseReason.DownloadClientUnavailable);
                     continue;
@@ -97,11 +97,11 @@ namespace NzbDrone.Core.Download
                         {
                             PreparePending(pendingAddQueue, grabbed, pending, report, PendingReleaseReason.DownloadClientUnavailable);
 
-                            if (downloadProtocol == nameof(UsenetDownloadProtocol))
+                            if (downloadProtocol == DownloadProtocol.Usenet)
                             {
                                 usenetFailed = true;
                             }
-                            else if (downloadProtocol == nameof(TorrentDownloadProtocol))
+                            else if (downloadProtocol == DownloadProtocol.Torrent)
                             {
                                 torrentFailed = true;
                             }

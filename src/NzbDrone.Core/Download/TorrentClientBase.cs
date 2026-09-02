@@ -41,7 +41,7 @@ namespace NzbDrone.Core.Download
             _torrentFileInfoReader = torrentFileInfoReader;
         }
 
-        public override string Protocol => nameof(TorrentDownloadProtocol);
+        public override DownloadProtocol Protocol => DownloadProtocol.Torrent;
 
         public virtual bool PreferTorrentFile => false;
 

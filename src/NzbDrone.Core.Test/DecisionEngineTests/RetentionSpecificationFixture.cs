@@ -20,7 +20,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
         {
             _remoteAlbum = new RemoteAlbum
             {
-                Release = new ReleaseInfo() { DownloadProtocol = nameof(UsenetDownloadProtocol) }
+                Release = new ReleaseInfo() { DownloadProtocol = DownloadProtocol.Usenet }
             };
         }
 
@@ -82,7 +82,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
         [Test]
         public void should_return_true_when_release_is_not_usenet()
         {
-            _remoteAlbum.Release.DownloadProtocol = nameof(TorrentDownloadProtocol);
+            _remoteAlbum.Release.DownloadProtocol = DownloadProtocol.Torrent;
 
             WithRetention(10);
             WithAge(100);

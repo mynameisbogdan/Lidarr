@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using NzbDrone.Common.Disk;
+using NzbDrone.Core.Indexers;
 using NzbDrone.Core.ThingiProvider;
 
 namespace NzbDrone.Core.Download
@@ -33,7 +34,7 @@ namespace NzbDrone.Core.Download
 
     public class DownloadClientItemClientInfo
     {
-        public string Protocol { get; set; }
+        public DownloadProtocol Protocol { get; set; }
         public string Type { get; set; }
         public int Id { get; set; }
         public string Name { get; set; }

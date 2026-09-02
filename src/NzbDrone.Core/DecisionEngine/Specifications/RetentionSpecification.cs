@@ -1,6 +1,5 @@
 using NLog;
 using NzbDrone.Core.Configuration;
-using NzbDrone.Core.Indexers;
 using NzbDrone.Core.IndexerSearch.Definitions;
 using NzbDrone.Core.Parser.Model;
 
@@ -22,7 +21,7 @@ namespace NzbDrone.Core.DecisionEngine.Specifications
 
         public virtual Decision IsSatisfiedBy(RemoteAlbum subject, SearchCriteriaBase searchCriteria)
         {
-            if (subject.Release.DownloadProtocol != nameof(UsenetDownloadProtocol))
+            if (subject.Release.DownloadProtocol != Indexers.DownloadProtocol.Usenet)
             {
                 _logger.Debug("Not checking retention requirement for non-usenet report");
                 return Decision.Accept();
