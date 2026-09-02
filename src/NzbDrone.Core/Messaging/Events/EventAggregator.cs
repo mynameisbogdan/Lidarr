@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 using NLog;
 using NzbDrone.Common;
 using NzbDrone.Common.EnsureThat;
-using NzbDrone.Common.EnvironmentInfo;
 using NzbDrone.Common.Messaging;
-using NzbDrone.Common.Reflection;
 using NzbDrone.Common.TPL;
 
 namespace NzbDrone.Core.Messaging.Events
@@ -16,7 +14,6 @@ namespace NzbDrone.Core.Messaging.Events
     {
         private readonly Logger _logger;
         private readonly IServiceFactory _serviceFactory;
-        private readonly IRuntimeInfo _runtimeInfo;
         private readonly TaskFactory _taskFactory;
 
         private readonly Dictionary<string, object> _eventSubscribers;
@@ -42,11 +39,10 @@ namespace NzbDrone.Core.Messaging.Events
             }
         }
 
-        public EventAggregator(Logger logger, IServiceFactory serviceFactory, IRuntimeInfo runtimeInfo)
+        public EventAggregator(Logger logger, IServiceFactory serviceFactory)
         {
             _logger = logger;
             _serviceFactory = serviceFactory;
-            _runtimeInfo = runtimeInfo;
             _taskFactory = new TaskFactory();
             _eventSubscribers = new Dictionary<string, object>();
         }
@@ -57,12 +53,6 @@ namespace NzbDrone.Core.Messaging.Events
             Ensure.That(@event, () => @event).IsNotNull();
 
             var eventName = GetEventName(@event.GetType());
-
-            if (_runtimeInfo.IsExiting && @event.GetType().HasAttribute<LifecycleEventAttribute>())
-            {
-                _logger.Warn("Event {0} blocked due to application shutdown", eventName);
-                return;
-            }
 
             /*
                         int workerThreads;
@@ -88,15 +78,7 @@ namespace NzbDrone.Core.Messaging.Events
             {
                 if (!_eventSubscribers.TryGetValue(eventName, out var target))
                 {
-                    try
-                    {
-                        _eventSubscribers[eventName] = target = new EventSubscribers<TEvent>(_serviceFactory);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Warn(ex, "Unable to resolve event subscribers for {0}, container may be disposed", eventName);
-                        return;
-                    }
+                    _eventSubscribers[eventName] = target = new EventSubscribers<TEvent>(_serviceFactory);
                 }
 
                 subscribers = target as EventSubscribers<TEvent>;
