@@ -21,7 +21,7 @@ function PageHeaderActionsMenu(props: PageHeaderActionsMenuProps) {
 
   const dispatch = useDispatch();
 
-  const { authentication, isContainerized } = useSelector(
+  const { authentication, isDocker } = useSelector(
     (state: AppState) => state.system.status.item
   );
 
@@ -48,22 +48,24 @@ function PageHeaderActionsMenu(props: PageHeaderActionsMenuProps) {
             {translate('KeyboardShortcuts')}
           </MenuItem>
 
-          <MenuItemSeparator />
+          {isDocker ? null : (
+            <>
+              <MenuItemSeparator />
 
-          <MenuItem onPress={handleRestartPress}>
-            <Icon className={styles.itemIcon} name={icons.RESTART} />
-            {translate('Restart')}
-          </MenuItem>
+              <MenuItem onPress={handleRestartPress}>
+                <Icon className={styles.itemIcon} name={icons.RESTART} />
+                {translate('Restart')}
+              </MenuItem>
 
-          {isContainerized ? null : (
-            <MenuItem onPress={handleShutdownPress}>
-              <Icon
-                className={styles.itemIcon}
-                name={icons.SHUTDOWN}
-                kind={kinds.DANGER}
-              />
-              {translate('Shutdown')}
-            </MenuItem>
+              <MenuItem onPress={handleShutdownPress}>
+                <Icon
+                  className={styles.itemIcon}
+                  name={icons.SHUTDOWN}
+                  kind={kinds.DANGER}
+                />
+                {translate('Shutdown')}
+              </MenuItem>
+            </>
           )}
 
           {formsAuth ? (
