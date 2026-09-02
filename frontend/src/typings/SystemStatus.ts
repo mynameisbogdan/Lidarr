@@ -7,7 +7,7 @@ interface SystemStatus {
   instanceName: string;
   isAdmin: boolean;
   isDebug: boolean;
-  isContainerized: boolean;
+  isDocker: boolean;
   isLinux: boolean;
   isNetCore: boolean;
   isOsx: boolean;
