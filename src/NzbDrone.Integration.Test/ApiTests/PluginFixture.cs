@@ -2,7 +2,6 @@ using System.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using NzbDrone.Common.Serializer;
-using NzbDrone.Core.Lifecycle.Commands;
 using NzbDrone.Core.Messaging.Commands;
 using NzbDrone.Core.Plugins.Commands;
 using NzbDrone.Integration.Test.Client;
@@ -17,12 +16,10 @@ namespace NzbDrone.Integration.Test.ApiTests
         [Order(0)]
         public void should_install_plugin()
         {
-            PostAndWaitForCompletion(new InstallPluginCommand
+            PostAndWaitForRestart(new InstallPluginCommand
             {
                 GithubUrl = "https://github.com/ta264/Lidarr.Plugin.Deemix"
             });
-
-            PostAndWaitForRestart(new RestartCommand());
 
             WaitForRestart();
 
@@ -39,12 +36,10 @@ namespace NzbDrone.Integration.Test.ApiTests
             plugins.Should().HaveCount(1);
             plugins[0].Name.Should().Be("Deemix");
 
-            PostAndWaitForCompletion(new UninstallPluginCommand
+            PostAndWaitForRestart(new UninstallPluginCommand
             {
                 GithubUrl = "https://github.com/ta264/Lidarr.Plugin.Deemix"
             });
-
-            PostAndWaitForRestart(new RestartCommand());
 
             WaitForRestart();
 
@@ -52,6 +47,7 @@ namespace NzbDrone.Integration.Test.ApiTests
             plugins.Should().BeEmpty();
         }
 
+        // Installing / uninstalling triggers a restart, so manually shutdown the restarted app
         [OneTimeTearDown]
         public void TearDown()
         {
@@ -59,43 +55,6 @@ namespace NzbDrone.Integration.Test.ApiTests
             request.Method = Method.POST;
             request.AddHeader("Authorization", ApiKey);
             RestClient.Execute(request);
-        }
-
-        private SimpleCommandResource PostAndWaitForCompletion<T>(T command)
-            where T : Command, new()
-        {
-            var request = new RestRequest("command");
-            request.Method = Method.POST;
-            request.AddHeader("Authorization", ApiKey);
-            request.AddJsonBody(command);
-
-            var result = RestClient.Execute(request);
-            var resource = Json.Deserialize<SimpleCommandResource>(result.Content);
-
-            var id = resource.Id;
-
-            id.Should().NotBe(0);
-
-            for (var i = 0; i < 50; i++)
-            {
-                if (resource?.Status == CommandStatus.Completed)
-                {
-                    return resource;
-                }
-
-                var get = new RestRequest($"command/{id}");
-                get.AddHeader("Authorization", ApiKey);
-
-                result = RestClient.Execute(get);
-
-                TestContext.Progress.WriteLine("Waiting for command to finish : {0}  [{1}] {2}\n{3}", result.ResponseStatus, result.StatusDescription, result.ErrorException?.Message, result.Content);
-
-                resource = Json.Deserialize<SimpleCommandResource>(result.Content);
-                Thread.Sleep(500);
-            }
-
-            Assert.Fail("Command failed");
-            return resource;
         }
 
         private SimpleCommandResource PostAndWaitForRestart<T>(T command)

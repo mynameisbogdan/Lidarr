@@ -1,6 +1,5 @@
-using System;
 using System.IO;
-using System.Linq;
+using System.Threading.Tasks;
 using NLog;
 using NzbDrone.Common;
 using NzbDrone.Common.Disk;
@@ -8,6 +7,7 @@ using NzbDrone.Common.EnvironmentInfo;
 using NzbDrone.Common.Extensions;
 using NzbDrone.Common.Http;
 using NzbDrone.Common.Instrumentation.Extensions;
+using NzbDrone.Core.Lifecycle;
 using NzbDrone.Core.Messaging.Commands;
 using NzbDrone.Core.Plugins.Commands;
 
@@ -20,6 +20,7 @@ namespace NzbDrone.Core.Plugins
         private readonly IAppFolderInfo _appFolderInfo;
         private readonly IHttpClient _httpClient;
         private readonly IArchiveService _archiveService;
+        private readonly ILifecycleService _lifecycleService;
         private readonly Logger _logger;
 
         public InstallPluginService(IPluginService pluginService,
@@ -27,6 +28,7 @@ namespace NzbDrone.Core.Plugins
                                     IAppFolderInfo appFolderInfo,
                                     IHttpClient httpClient,
                                     IArchiveService archiveService,
+                                    ILifecycleService lifecycleService,
                                     Logger logger)
         {
             _pluginService = pluginService;
@@ -34,19 +36,14 @@ namespace NzbDrone.Core.Plugins
             _appFolderInfo = appFolderInfo;
             _httpClient = httpClient;
             _archiveService = archiveService;
+            _lifecycleService = lifecycleService;
             _logger = logger;
         }
 
         public void Execute(UninstallPluginCommand message)
         {
             var (owner, name) = _pluginService.ParseUrl(message.GithubUrl);
-
-            // Get installed version before uninstalling
-            var installedPlugins = _pluginService.GetInstalledPlugins();
-            var installedPlugin = installedPlugins.FirstOrDefault(p => p.Owner == owner && p.Name == name);
-            var version = installedPlugin?.InstalledVersion;
-
-            UninstallPlugin(owner, name, version);
+            UninstallPlugin(owner, name);
         }
 
         public void Execute(InstallPluginCommand message)
@@ -70,30 +67,24 @@ namespace NzbDrone.Core.Plugins
             }
 
             var packageDestination = Path.Combine(tempFolder, $"{package.Name}.zip");
-            var packageTitle = $"{package.Owner}/{package.Name} v{package.Version}";
-            _logger.ProgressInfo($"Downloading plugin [{packageTitle}]");
+
+            _logger.ProgressInfo($"Downloading plugin {package.Name}");
             _httpClient.DownloadFile(package.PackageUrl, packageDestination);
 
-            _logger.ProgressInfo($"Extracting plugin [{packageTitle}]");
+            _logger.ProgressInfo("Extracting Plugin package");
             _archiveService.Extract(packageDestination, Path.Combine(PluginFolder(), package.Owner, package.Name));
-            _logger.ProgressInfo($"Plugin [{package.Owner}/{package.Name}] v{package.Version} installed. Please restart Lidarr.");
+            _logger.ProgressInfo($"Installed {package.Name}, restarting");
+
+            Task.Factory.StartNew(() => _lifecycleService.Restart());
         }
 
-        private void UninstallPlugin(string owner, string name, Version version)
+        private void UninstallPlugin(string owner, string name)
         {
-            _logger.ProgressInfo($"Uninstalling plugin [{owner}/{name}]");
-            var pluginFolder = Path.Combine(PluginFolder(), owner, name);
-            _logger.Debug("Deleting folder: {0}", pluginFolder);
-            _diskProvider.DeleteFolder(pluginFolder, true);
+            _logger.ProgressInfo($"Uninstalling Plugin {owner}/{name}");
+            _diskProvider.DeleteFolder(Path.Combine(PluginFolder(), owner, name), true);
+            _logger.ProgressInfo($"Uninstalled Plugin {owner}/{name}, restarting");
 
-            if (version != null)
-            {
-                _logger.ProgressInfo($"Plugin [{owner}/{name}] v{version} uninstalled. Please restart Lidarr.");
-            }
-            else
-            {
-                _logger.ProgressInfo($"Plugin [{owner}/{name}] uninstalled. Please restart Lidarr.");
-            }
+            Task.Factory.StartNew(() => _lifecycleService.Restart());
         }
 
         private void EnsurePluginFolder()

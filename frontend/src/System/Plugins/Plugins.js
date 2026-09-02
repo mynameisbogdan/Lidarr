@@ -7,13 +7,11 @@ import FormInputGroup from 'Components/Form/FormInputGroup';
 import FormLabel from 'Components/Form/FormLabel';
 import SpinnerButton from 'Components/Link/SpinnerButton';
 import LoadingIndicator from 'Components/Loading/LoadingIndicator';
-import ConfirmModal from 'Components/Modal/ConfirmModal';
 import PageContent from 'Components/Page/PageContent';
 import PageContentBody from 'Components/Page/PageContentBody';
 import Table from 'Components/Table/Table';
 import TableBody from 'Components/Table/TableBody';
 import { inputTypes, kinds } from 'Helpers/Props';
-import translate from 'Utilities/String/translate';
 import PluginRow from './PluginRow';
 
 const columns = [
@@ -80,15 +78,7 @@ class Plugins extends Component {
       isInstallingPlugin,
       onInstallPluginPress,
       isUninstallingPlugin,
-      onUninstallPluginPress,
-      isRestartRequiredModalOpen,
-      onCloseRestartRequiredModal,
-      pluginOwner,
-      pluginName,
-      pluginVersion,
-      pluginAction,
-      pluginDetailsUrl,
-      pluginBranch
+      onUninstallPluginPress
     } = this.props;
 
     const {
@@ -96,23 +86,6 @@ class Plugins extends Component {
     } = this.state;
 
     const noPlugins = isPopulated && !error && !items.length;
-
-    // Build modal title and message
-    let modalTitle = translate('RestartRequired');
-    let modalMessage = translate('LidarrRequiresRestartToApplyPluginChanges');
-
-    if (pluginOwner && pluginName && pluginAction) {
-      const versionText = pluginVersion ? ` v${pluginVersion}` : '';
-      const branchText = pluginBranch ? ` (${pluginBranch})` : '';
-      const actionText = pluginAction === 'install' ? 'installed' : 'uninstalled';
-      modalTitle = `Plugin ${actionText} - ${translate('RestartRequired')}`;
-
-      if (pluginDetailsUrl) {
-        modalMessage = `Plugin: [${pluginOwner}/${pluginName}]${versionText}${branchText}\n\nInstalled from:\n${pluginDetailsUrl}\n\nPlease restart Lidarr to apply changes.`;
-      } else {
-        modalMessage = `Plugin: [${pluginOwner}/${pluginName}]${versionText}${branchText}\n\nPlugin ${actionText} successfully.\n\nPlease restart Lidarr to apply changes.`;
-      }
-    }
 
     return (
       <PageContent title="Plugins">
@@ -175,17 +148,6 @@ class Plugins extends Component {
                 </Table>
             }
           </FieldSet>
-
-          <ConfirmModal
-            isOpen={isRestartRequiredModalOpen}
-            kind={kinds.INFO}
-            title={modalTitle}
-            message={modalMessage}
-            confirmLabel={translate('Ok')}
-            hideCancelButton={true}
-            onConfirm={onCloseRestartRequiredModal}
-            onCancel={onCloseRestartRequiredModal}
-          />
         </PageContentBody>
       </PageContent>
     );
@@ -200,15 +162,7 @@ Plugins.propTypes = {
   isInstallingPlugin: PropTypes.bool.isRequired,
   onInstallPluginPress: PropTypes.func.isRequired,
   isUninstallingPlugin: PropTypes.bool.isRequired,
-  onUninstallPluginPress: PropTypes.func.isRequired,
-  isRestartRequiredModalOpen: PropTypes.bool,
-  onCloseRestartRequiredModal: PropTypes.func,
-  pluginOwner: PropTypes.string,
-  pluginName: PropTypes.string,
-  pluginVersion: PropTypes.string,
-  pluginAction: PropTypes.string,
-  pluginDetailsUrl: PropTypes.string,
-  pluginBranch: PropTypes.string
+  onUninstallPluginPress: PropTypes.func.isRequired
 };
 
 export default Plugins;
