@@ -11,7 +11,7 @@ namespace NzbDrone.Core.Indexers
     {
         bool SupportsRss { get; }
         bool SupportsSearch { get; }
-        string Protocol { get; }
+        DownloadProtocol Protocol { get; }
 
         Task<IList<ReleaseInfo>> FetchRecent();
         Task<IList<ReleaseInfo>> Fetch(AlbumSearchCriteria searchCriteria);

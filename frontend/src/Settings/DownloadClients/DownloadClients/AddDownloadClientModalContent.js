@@ -13,19 +13,6 @@ import translate from 'Utilities/String/translate';
 import AddDownloadClientItem from './AddDownloadClientItem';
 import styles from './AddDownloadClientModalContent.css';
 
-function mapDownloadClients(clients, onDownloadClientSelect) {
-  return clients.map((downloadClient) => {
-    return (
-      <AddDownloadClientItem
-        key={downloadClient.implementation}
-        implementation={downloadClient.implementation}
-        {...downloadClient}
-        onDownloadClientSelect={onDownloadClientSelect}
-      />
-    );
-  });
-}
-
 class AddDownloadClientModalContent extends Component {
 
   //
@@ -38,7 +25,6 @@ class AddDownloadClientModalContent extends Component {
       schemaError,
       usenetDownloadClients,
       torrentDownloadClients,
-      otherDownloadClients,
       onDownloadClientSelect,
       onModalClose
     } = this.props;
@@ -78,7 +64,16 @@ class AddDownloadClientModalContent extends Component {
                 <FieldSet legend={translate('Usenet')}>
                   <div className={styles.downloadClients}>
                     {
-                      mapDownloadClients(usenetDownloadClients, onDownloadClientSelect)
+                      usenetDownloadClients.map((downloadClient) => {
+                        return (
+                          <AddDownloadClientItem
+                            key={downloadClient.implementation}
+                            implementation={downloadClient.implementation}
+                            {...downloadClient}
+                            onDownloadClientSelect={onDownloadClientSelect}
+                          />
+                        );
+                      })
                     }
                   </div>
                 </FieldSet>
@@ -86,22 +81,19 @@ class AddDownloadClientModalContent extends Component {
                 <FieldSet legend={translate('Torrents')}>
                   <div className={styles.downloadClients}>
                     {
-                      mapDownloadClients(torrentDownloadClients, onDownloadClientSelect)
+                      torrentDownloadClients.map((downloadClient) => {
+                        return (
+                          <AddDownloadClientItem
+                            key={downloadClient.implementation}
+                            implementation={downloadClient.implementation}
+                            {...downloadClient}
+                            onDownloadClientSelect={onDownloadClientSelect}
+                          />
+                        );
+                      })
                     }
                   </div>
                 </FieldSet>
-
-                {
-                  otherDownloadClients.length ?
-                    <FieldSet legend="Other">
-                      <div className={styles.downloadClients}>
-                        {
-                          mapDownloadClients(otherDownloadClients, onDownloadClientSelect)
-                        }
-                      </div>
-                    </FieldSet> :
-                    null
-                }
               </div>
           }
         </ModalBody>
@@ -123,7 +115,6 @@ AddDownloadClientModalContent.propTypes = {
   schemaError: PropTypes.object,
   usenetDownloadClients: PropTypes.arrayOf(PropTypes.object).isRequired,
   torrentDownloadClients: PropTypes.arrayOf(PropTypes.object).isRequired,
-  otherDownloadClients: PropTypes.arrayOf(PropTypes.object).isRequired,
   onDownloadClientSelect: PropTypes.func.isRequired,
   onModalClose: PropTypes.func.isRequired
 };

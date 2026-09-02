@@ -18,7 +18,7 @@ namespace NzbDrone.Core.Indexers.Headphones
 
         public override string Name => "Headphones VIP";
 
-        public override string Protocol => nameof(UsenetDownloadProtocol);
+        public override DownloadProtocol Protocol => DownloadProtocol.Usenet;
 
         public override int PageSize => _capabilitiesProvider.GetCapabilities(Settings).DefaultPageSize;
 

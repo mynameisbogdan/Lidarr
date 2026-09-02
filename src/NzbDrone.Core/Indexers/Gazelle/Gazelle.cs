@@ -16,7 +16,7 @@ namespace NzbDrone.Core.Indexers.Gazelle
     public class Gazelle : HttpIndexerBase<GazelleSettings>
     {
         public override string Name => "Gazelle API";
-        public override string Protocol => nameof(TorrentDownloadProtocol);
+        public override DownloadProtocol Protocol => DownloadProtocol.Torrent;
         public override bool SupportsRss => true;
         public override bool SupportsSearch => true;
         public override int PageSize => 50;
@@ -81,7 +81,7 @@ namespace NzbDrone.Core.Indexers.Gazelle
                 Name = name,
                 Implementation = GetType().Name,
                 Settings = settings,
-                Protocol = nameof(TorrentDownloadProtocol),
+                Protocol = DownloadProtocol.Torrent,
                 SupportsRss = SupportsRss,
                 SupportsSearch = SupportsSearch
             };

@@ -10,7 +10,7 @@ namespace NzbDrone.Core.Test.IndexerTests
     {
         public override string Name => "Test Indexer";
 
-        public override string Protocol => nameof(UsenetDownloadProtocol);
+        public override DownloadProtocol Protocol => DownloadProtocol.Usenet;
 
         public int _supportedPageSize;
         public override int PageSize => _supportedPageSize;

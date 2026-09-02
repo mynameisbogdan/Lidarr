@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
 using NzbDrone.Core.Download.Pending;
+using NzbDrone.Core.Indexers;
 using NzbDrone.Core.Languages;
 
 namespace NzbDrone.Core.Parser.Model
@@ -25,7 +26,7 @@ namespace NzbDrone.Core.Parser.Model
         public string Artist { get; set; }
         public string Album { get; set; }
         public int IndexerPriority { get; set; }
-        public string DownloadProtocol { get; set; }
+        public DownloadProtocol DownloadProtocol { get; set; }
         public DateTime PublishDate { get; set; }
 
         public string Origin { get; set; }

@@ -5,14 +5,14 @@ import sortByProp from 'Utilities/Array/sortByProp';
 import Label from './Label';
 import styles from './TagList.css';
 
-function TagList({ className, tags, tagList }) {
+function TagList({ tags, tagList }) {
   const sortedTags = tags
     .map((tagId) => tagList.find((tag) => tag.id === tagId))
     .filter((tag) => !!tag)
     .sort(sortByProp('label'));
 
   return (
-    <div className={className}>
+    <div className={styles.tags}>
       {
         sortedTags.map((tag) => {
           return (
@@ -30,13 +30,8 @@ function TagList({ className, tags, tagList }) {
 }
 
 TagList.propTypes = {
-  className: PropTypes.string.isRequired,
   tags: PropTypes.arrayOf(PropTypes.number).isRequired,
   tagList: PropTypes.arrayOf(PropTypes.object).isRequired
-};
-
-TagList.defaultProps = {
-  className: styles.tags
 };
 
 export default TagList;
